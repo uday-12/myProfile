@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "prisma": "^7.8.0",
+    "react-router-dom": "^7.16.0",
+    "tailwindcss": "^4.3.0"
+  }
+}

@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: portfolio-backend
+    runtime: node
+    rootDir: portfolio/backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      # Set all of these in the Render dashboard (Environment → Add Environment Variable)
+      # Mark secrets as "Secret" so they are encrypted at rest.
+
+      - key: NODE_VERSION
+        value: 20.11.0        # override Render's default; Node 20 LTS
+
+      - key: DATABASE_URL
+        sync: false           # Neon pooled connection string
+
+      - key: JWT_SECRET
+        sync: false           # 64-char hex secret
+
+      - key: ADMIN_EMAIL
+        sync: false
+
+      - key: ADMIN_PASSWORD
+        sync: false           # plain text — hashed by seed script
+
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+
+      - key: CLOUDINARY_API_KEY
+        sync: false
+
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      - key: ALLOWED_ORIGINS
+        sync: false           # your Vercel URL, e.g. https://your-portfolio.vercel.app
