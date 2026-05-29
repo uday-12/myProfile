@@ -21,6 +21,7 @@ export async function uploadFile(req, res) {
       resourceType: result.resource_type,
     })
   } catch (err) {
+    console.error('Cloudinary upload error:', err)
     return res.status(500).json({ error: 'Cloudinary upload failed' })
   }
 }
