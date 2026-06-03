@@ -9,6 +9,9 @@ function parseVideo(url) {
 
   if (DIRECT_EXTS.test(url)) return { type: 'video', src: url }
 
+  const gdrive = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/)
+  if (gdrive) return { type: 'iframe', src: `https://drive.google.com/file/d/${gdrive[1]}/preview` }
+
   // unknown URL — attempt iframe as best-effort
   return { type: 'iframe', src: url }
 }

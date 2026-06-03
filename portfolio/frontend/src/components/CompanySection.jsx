@@ -1,6 +1,9 @@
 import ProjectCard from './ProjectCard.jsx'
+import { formatPeriod } from '../lib/formatDate.js'
 
 export default function CompanySection({ company }) {
+  const period = formatPeriod(company.startDate, company.endDate)
+
   return (
     <section className="py-16 px-4">
       <div className="max-w-6xl mx-auto">
@@ -10,15 +13,20 @@ export default function CompanySection({ company }) {
             <img
               src={company.logoUrl}
               alt={`${company.name} logo`}
-              className="w-12 h-12 rounded-lg object-contain bg-zinc-800 border border-zinc-700 p-1 shrink-0 mt-1"
+              className="w-12 h-12 rounded-lg object-contain p-1 shrink-0 mt-1" style={{ background: 'var(--c-surface-2)', border: '1px solid var(--c-border-2)' }}
             />
           )}
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-zinc-100 tracking-tight">
-              {company.name}
-            </h2>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: 'var(--c-text)' }}>
+                {company.name}
+              </h2>
+              {period && (
+                <span className="text-sm shrink-0" style={{ color: 'var(--c-text-3)' }}>{period}</span>
+              )}
+            </div>
             {company.description && (
-              <p className="mt-1 text-zinc-400 text-sm md:text-base max-w-2xl leading-relaxed">
+              <p className="mt-1 text-sm md:text-base leading-relaxed" style={{ color: 'var(--c-text-2)' }}>
                 {company.description}
               </p>
             )}
@@ -26,11 +34,11 @@ export default function CompanySection({ company }) {
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-indigo-500/40 via-zinc-700 to-transparent mb-10" />
+        <div className="h-px mb-10" style={{ background: 'linear-gradient(to right, var(--c-accent), var(--c-border), transparent)' }} />
 
         {/* Projects grid */}
         {company.projects.length === 0 ? (
-          <p className="text-zinc-600 text-sm">No projects yet.</p>
+          <p className="text-sm" style={{ color: 'var(--c-text-3)' }}>No projects yet.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {company.projects.map((project) => (

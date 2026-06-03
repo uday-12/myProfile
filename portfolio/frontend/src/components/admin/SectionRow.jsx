@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Trash2, ChevronDown, ChevronRight, Loader2 } from 'lucide-react'
@@ -20,7 +20,25 @@ export default function SectionRow({ section: initial, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: initial.id })
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }
 
+  const textareaRef = useRef(null)
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }))
+
+  const wrapSelection = (syntax) => {
+    const el = textareaRef.current
+    if (!el) return
+    const start = el.selectionStart
+    const end = el.selectionEnd
+    const selected = form.description.slice(start, end)
+    const wrapped = `${syntax}${selected || 'text'}${syntax}`
+    const next = form.description.slice(0, start) + wrapped + form.description.slice(end)
+    setField('description', next)
+    // restore cursor inside the syntax markers
+    requestAnimationFrame(() => {
+      el.focus()
+      const cursor = start + syntax.length + (selected || 'text').length + syntax.length
+      el.setSelectionRange(cursor, cursor)
+    })
+  }
 
   const handleSave = async () => {
     if (!form.title.trim() || !form.description.trim()) {
@@ -73,12 +91,35 @@ export default function SectionRow({ section: initial, onDelete }) {
         {open && (
           <div className="px-3 pb-3 space-y-3 border-t border-zinc-700/50 pt-3">
             <div>
-              <label className="block text-xs font-medium text-zinc-500 mb-1">Title</label>
+              <label className="block text-xs font-medium text-zinc-500 mb-1">Title *</label>
               <input className={inputCls} value={form.title} onChange={(e) => setField('title', e.target.value)} placeholder="Section title" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-zinc-500 mb-1">Description</label>
-              <textarea className={`${inputCls} resize-none`} rows={3} value={form.description} onChange={(e) => setField('description', e.target.value)} placeholder="Section description…" />
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-medium text-zinc-500">Description *</label>
+                <div className="flex items-center gap-1">
+                  {/* Formatting buttons */}
+                  <button type="button" onClick={() => wrapSelection('**')}
+                    className="px-1.5 py-0.5 text-xs font-bold text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                    title="Bold — wrap with **text**">B</button>
+                  <button type="button" onClick={() => wrapSelection('*')}
+                    className="px-1.5 py-0.5 text-xs italic text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                    title="Italic — wrap with *text*">I</button>
+                  {/* Info tooltip */}
+                  <div className="relative group ml-1">
+                    <button type="button" className="w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 text-[10px] flex items-center justify-center hover:bg-zinc-600 transition-colors">
+                      i
+                    </button>
+                    <div className="absolute right-0 top-5 z-20 hidden group-hover:block w-52 bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-xs text-zinc-400 shadow-xl">
+                      <p className="font-semibold text-zinc-300 mb-1.5">Formatting syntax</p>
+                      <p><code className="text-indigo-400">**text**</code> → <strong className="text-zinc-200">bold</strong></p>
+                      <p className="mt-1"><code className="text-indigo-400">*text*</code> → <em>italic</em></p>
+                      <p className="mt-2 text-zinc-600">Select text then click B or I, or type the markers manually.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <textarea ref={textareaRef} className={`${inputCls} resize-y`} rows={3} value={form.description} onChange={(e) => setField('description', e.target.value)} placeholder="Section description…" />
             </div>
             <div>
               <label className="block text-xs font-medium text-zinc-500 mb-1.5">Image</label>

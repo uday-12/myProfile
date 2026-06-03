@@ -45,7 +45,7 @@ function AddProjectForm({ companyId, onCreated, onCancel }) {
     <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-3 space-y-2.5">
       <p className="text-xs font-medium text-indigo-400">New project</p>
       <input className={inputCls} placeholder="Title *" value={form.title} onChange={(e) => set('title', e.target.value)} />
-      <textarea className={`${inputCls} resize-none`} rows={2} placeholder="Description *" value={form.description} onChange={(e) => set('description', e.target.value)} />
+      <textarea className={`${inputCls} resize-y`} rows={2} placeholder="Description *" value={form.description} onChange={(e) => set('description', e.target.value)} />
       <input className={inputCls} placeholder="Video URL (optional)" value={form.videoUrl} onChange={(e) => set('videoUrl', e.target.value)} />
       <div className="flex gap-2 pt-1">
         <button onClick={handleCreate} disabled={saving} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg transition-colors">
@@ -62,7 +62,14 @@ export default function CompanyRow({ company: initial, onDelete }) {
   const addToast = useToast()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: initial.name, description: initial.description, logoUrl: initial.logoUrl ?? '' })
+  const toMonth = (d) => d ? new Date(d).toISOString().slice(0, 7) : ''
+  const [form, setForm] = useState({
+    name: initial.name,
+    description: initial.description,
+    logoUrl: initial.logoUrl ?? '',
+    startDate: toMonth(initial.startDate),
+    endDate: toMonth(initial.endDate),
+  })
   const [projects, setProjects] = useState(() => [...(initial.projects ?? [])].sort((a, b) => a.order - b.order))
   const [saving, setSaving] = useState(false)
   const [addingProject, setAddingProject] = useState(false)
@@ -85,7 +92,12 @@ export default function CompanyRow({ company: initial, onDelete }) {
     }
     setSaving(true)
     try {
-      await api.put(`/api/companies/${initial.id}`, form)
+      const toISO = (m) => m ? `${m}-01T00:00:00.000Z` : null
+      await api.put(`/api/companies/${initial.id}`, {
+        ...form,
+        startDate: toISO(form.startDate),
+        endDate: toISO(form.endDate),
+      })
       addToast('Company updated.')
       setEditing(false)
     } catch {
@@ -161,11 +173,21 @@ export default function CompanyRow({ company: initial, onDelete }) {
                 </div>
                 <div>
                   <label className="block text-xs text-zinc-500 mb-1">Description *</label>
-                  <textarea className={`${inputCls} resize-none`} rows={2} value={form.description} onChange={(e) => setField('description', e.target.value)} />
+                  <textarea className={`${inputCls} resize-y`} rows={2} value={form.description} onChange={(e) => setField('description', e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-xs text-zinc-500 mb-1.5">Logo</label>
                   <FileUpload value={form.logoUrl} onChange={(v) => setField('logoUrl', v)} />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xs text-zinc-500 mb-1">Start date</label>
+                    <input type="month" className={inputCls} value={form.startDate} onChange={(e) => setField('startDate', e.target.value)} />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs text-zinc-500 mb-1">End date <span className="text-zinc-600">(blank = Present)</span></label>
+                    <input type="month" className={inputCls} value={form.endDate} onChange={(e) => setField('endDate', e.target.value)} />
+                  </div>
                 </div>
                 <div className="flex gap-2 pt-1">
                   <button onClick={handleSave} disabled={saving} className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg transition-colors">

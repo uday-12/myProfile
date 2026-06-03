@@ -47,6 +47,9 @@ export async function updateProject(req, res) {
     const { title, description } = req.body
     const data = { title, description }
     if ('videoUrl' in req.body) data.videoUrl = req.body.videoUrl
+    if ('metadata' in req.body) data.metadata = req.body.metadata
+    if ('startDate' in req.body) data.startDate = req.body.startDate || null
+    if ('endDate' in req.body) data.endDate = req.body.endDate || null
 
     const project = await prisma.project.update({
       where: { id: req.params.id },

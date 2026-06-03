@@ -54,6 +54,23 @@ function Divider() {
 
 export default function ProfileEditor() {
   const fileInputRef = useRef(null)
+  const bioRef = useRef(null)
+
+  const wrapBio = (syntax) => {
+    const el = bioRef.current
+    if (!el) return
+    const start = el.selectionStart
+    const end = el.selectionEnd
+    const selected = form.bio.slice(start, end)
+    const wrapped = `${syntax}${selected || 'text'}${syntax}`
+    const next = form.bio.slice(0, start) + wrapped + form.bio.slice(end)
+    setField('bio', next)
+    requestAnimationFrame(() => {
+      el.focus()
+      const cursor = start + syntax.length + (selected || 'text').length + syntax.length
+      el.setSelectionRange(cursor, cursor)
+    })
+  }
 
   const [pageLoading, setPageLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -153,9 +170,9 @@ export default function ProfileEditor() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Profile</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">Profile</h1>
         <p className="text-zinc-500 text-sm mt-1">Your public portfolio identity.</p>
       </div>
 
@@ -220,22 +237,24 @@ export default function ProfileEditor() {
         {/* ── Basic info ── */}
         <SectionHeading title="Basic info" />
         <div className="space-y-5">
-          <Field label="Name" required>
-            <Input
-              value={form.name}
-              onChange={(v) => setField('name', v)}
-              placeholder="Your name"
-              required
-            />
-          </Field>
-          <Field label="Title" required>
-            <Input
-              value={form.title}
-              onChange={(v) => setField('title', v)}
-              placeholder="e.g. Full-Stack Engineer"
-              required
-            />
-          </Field>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <Field label="Name" required>
+              <Input
+                value={form.name}
+                onChange={(v) => setField('name', v)}
+                placeholder="Your name"
+                required
+              />
+            </Field>
+            <Field label="Title" required>
+              <Input
+                value={form.title}
+                onChange={(v) => setField('title', v)}
+                placeholder="e.g. Full-Stack Engineer"
+                required
+              />
+            </Field>
+          </div>
           <Field label="Email" required>
             <Input
               type="email"
@@ -245,20 +264,44 @@ export default function ProfileEditor() {
               required
             />
           </Field>
-          <Field label="Bio">
-            <Textarea
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium text-zinc-400">Bio</label>
+              <div className="flex items-center gap-1">
+                <button type="button" onClick={() => wrapBio('**')}
+                  className="px-1.5 py-0.5 text-xs font-bold text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                  title="Bold — **text**">B</button>
+                <button type="button" onClick={() => wrapBio('*')}
+                  className="px-1.5 py-0.5 text-xs italic text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                  title="Italic — *text*">I</button>
+                <div className="relative group ml-1">
+                  <button type="button" className="w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 text-[10px] flex items-center justify-center hover:bg-zinc-600 transition-colors">
+                    i
+                  </button>
+                  <div className="absolute right-0 top-5 z-20 hidden group-hover:block w-52 bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-xs text-zinc-400 shadow-xl">
+                    <p className="font-semibold text-zinc-300 mb-1.5">Formatting syntax</p>
+                    <p><code className="text-indigo-400">**text**</code> → <strong className="text-zinc-200">bold</strong></p>
+                    <p className="mt-1"><code className="text-indigo-400">*text*</code> → <em>italic</em></p>
+                    <p className="mt-2 text-zinc-600">Select text then click B or I, or type manually.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <textarea
+              ref={bioRef}
               value={form.bio}
-              onChange={(v) => setField('bio', v)}
+              onChange={(e) => setField('bio', e.target.value)}
               placeholder="A short bio about yourself…"
               rows={4}
+              className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-y"
             />
-          </Field>
+          </div>
         </div>
 
         <Divider />
 
         {/* ── Social links ── */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
           <SectionHeading
             title="Social links"
             subtitle="Platform keys become the label shown publicly (e.g. github, linkedin)."
@@ -266,7 +309,7 @@ export default function ProfileEditor() {
           <button
             type="button"
             onClick={addLink}
-            className="shrink-0 text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
+            className="self-start sm:self-auto shrink-0 text-sm text-indigo-400 hover:text-indigo-300 transition-colors"
           >
             + Add link
           </button>
@@ -277,28 +320,31 @@ export default function ProfileEditor() {
         ) : (
           <div className="space-y-2.5 mb-6">
             {socialLinks.map((link, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <Input
+              <div key={i} className="flex flex-col sm:flex-row gap-2 min-w-0">
+                <input
                   value={link.platform}
-                  onChange={(v) => updateLink(i, 'platform', v)}
-                  placeholder="github"
-                  className="w-32 shrink-0"
+                  onChange={(e) => updateLink(i, 'platform', e.target.value)}
+                  placeholder="Platform (e.g. github)"
+                  className="sm:w-36 sm:shrink-0 w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
                 />
-                <Input
-                  value={link.url}
-                  onChange={(v) => updateLink(i, 'url', v)}
-                  placeholder="https://…"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeLink(i)}
-                  className="shrink-0 w-8 h-8 flex items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800 rounded-lg transition-colors"
-                  title="Remove"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+                <div className="flex gap-2 flex-1 min-w-0">
+                  <input
+                    value={link.url}
+                    onChange={(e) => updateLink(i, 'url', e.target.value)}
+                    placeholder="https://…"
+                    className="flex-1 min-w-0 bg-zinc-800/50 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeLink(i)}
+                    className="shrink-0 w-8 h-8 flex items-center justify-center text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800 rounded-lg transition-colors"
+                    title="Remove"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             ))}
           </div>

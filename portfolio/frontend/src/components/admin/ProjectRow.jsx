@@ -45,7 +45,7 @@ function AddSectionForm({ projectId, onCreated, onCancel }) {
     <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/5 p-3 space-y-2.5">
       <p className="text-xs font-medium text-indigo-400">New section</p>
       <input className={inputCls} placeholder="Title *" value={form.title} onChange={(e) => set('title', e.target.value)} />
-      <textarea className={`${inputCls} resize-none`} rows={2} placeholder="Description *" value={form.description} onChange={(e) => set('description', e.target.value)} />
+      <textarea className={`${inputCls} resize-y`} rows={2} placeholder="Description *" value={form.description} onChange={(e) => set('description', e.target.value)} />
       <FileUpload value={form.imageUrl} onChange={(v) => set('imageUrl', v)} label="Upload image (optional)" />
       <div className="flex gap-2 pt-1">
         <button onClick={handleCreate} disabled={saving} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg transition-colors">
@@ -62,7 +62,16 @@ export default function ProjectRow({ project: initial, companyId, onDelete }) {
   const addToast = useToast()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ title: initial.title, description: initial.description, videoUrl: initial.videoUrl ?? '' })
+  const toMonth = (d) => d ? new Date(d).toISOString().slice(0, 7) : ''
+  const [form, setForm] = useState({
+    title: initial.title,
+    description: initial.description,
+    videoUrl: initial.videoUrl ?? '',
+    startDate: toMonth(initial.startDate),
+    endDate: toMonth(initial.endDate),
+  })
+  const [meta, setMeta] = useState(() => initial.metadata ?? [])
+  const [metaSaving, setMetaSaving] = useState(false)
   const [sections, setSections] = useState(() => [...(initial.sections ?? [])].sort((a, b) => a.order - b.order))
   const [saving, setSaving] = useState(false)
   const [addingSection, setAddingSection] = useState(false)
@@ -85,7 +94,12 @@ export default function ProjectRow({ project: initial, companyId, onDelete }) {
     }
     setSaving(true)
     try {
-      await api.put(`/api/projects/${initial.id}`, form)
+      const toISO = (m) => m ? `${m}-01T00:00:00.000Z` : null
+      await api.put(`/api/projects/${initial.id}`, {
+        ...form,
+        startDate: toISO(form.startDate),
+        endDate: toISO(form.endDate),
+      })
       addToast('Project updated.')
       setEditing(false)
     } catch {
@@ -105,6 +119,24 @@ export default function ProjectRow({ project: initial, companyId, onDelete }) {
       addToast('Failed to delete project.', 'error')
       setDeleting(false)
       setConfirmOpen(false)
+    }
+  }
+
+  const handleMetaSave = async () => {
+    setMetaSaving(true)
+    try {
+      const toISO = (m) => m ? `${m}-01T00:00:00.000Z` : null
+      await api.put(`/api/projects/${initial.id}`, {
+        ...form,
+        startDate: toISO(form.startDate),
+        endDate: toISO(form.endDate),
+        metadata: meta,
+      })
+      addToast('Details saved.')
+    } catch {
+      addToast('Failed to save details.', 'error')
+    } finally {
+      setMetaSaving(false)
     }
   }
 
@@ -155,11 +187,21 @@ export default function ProjectRow({ project: initial, companyId, onDelete }) {
                 </div>
                 <div>
                   <label className="block text-xs text-zinc-500 mb-1">Description *</label>
-                  <textarea className={`${inputCls} resize-none`} rows={2} value={form.description} onChange={(e) => setField('description', e.target.value)} />
+                  <textarea className={`${inputCls} resize-y`} rows={2} value={form.description} onChange={(e) => setField('description', e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-xs text-zinc-500 mb-1">Video URL</label>
                   <input className={inputCls} value={form.videoUrl} onChange={(e) => setField('videoUrl', e.target.value)} placeholder="YouTube / Vimeo / direct URL" />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xs text-zinc-500 mb-1">Start date</label>
+                    <input type="month" className={inputCls} value={form.startDate} onChange={(e) => setField('startDate', e.target.value)} />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-xs text-zinc-500 mb-1">End date <span className="text-zinc-600">(blank = Present)</span></label>
+                    <input type="month" className={inputCls} value={form.endDate} onChange={(e) => setField('endDate', e.target.value)} />
+                  </div>
                 </div>
                 <div className="flex gap-2 pt-1">
                   <button onClick={handleSave} disabled={saving} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg transition-colors">
@@ -172,6 +214,54 @@ export default function ProjectRow({ project: initial, companyId, onDelete }) {
                 </div>
               </div>
             )}
+
+            {/* Project Details (metadata) */}
+            <div className="space-y-2 p-3 bg-zinc-900/60 rounded-lg border border-zinc-700/50">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-zinc-400">Project Details</span>
+                <button
+                  onClick={() => setMeta((prev) => [...prev, { label: '', value: '' }])}
+                  className="inline-flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                >
+                  <Plus className="w-3 h-3" /> Add row
+                </button>
+              </div>
+              {meta.length === 0 && (
+                <p className="text-xs text-zinc-700">No details yet. Add rows like "Role", "Skills", "Duration".</p>
+              )}
+              {meta.map((item, i) => (
+                <div key={i} className="flex gap-2 items-center min-w-0">
+                  <input
+                    className="shrink-0 w-24 bg-zinc-800/60 border border-zinc-700/80 rounded-lg px-2 py-2 text-zinc-100 text-xs placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    placeholder="Label"
+                    value={item.label}
+                    onChange={(e) => setMeta((prev) => prev.map((r, j) => j === i ? { ...r, label: e.target.value } : r))}
+                  />
+                  <input
+                    className="flex-1 min-w-0 bg-zinc-800/60 border border-zinc-700/80 rounded-lg px-2 py-2 text-zinc-100 text-xs placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                    placeholder="Value"
+                    value={item.value}
+                    onChange={(e) => setMeta((prev) => prev.map((r, j) => j === i ? { ...r, value: e.target.value } : r))}
+                  />
+                  <button
+                    onClick={() => setMeta((prev) => prev.filter((_, j) => j !== i))}
+                    className="shrink-0 p-1 text-zinc-600 hover:text-red-400 transition-colors rounded"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+              {meta.length > 0 && (
+                <button
+                  onClick={handleMetaSave}
+                  disabled={metaSaving}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg transition-colors mt-1"
+                >
+                  {metaSaving && <Loader2 className="w-3 h-3 animate-spin" />}
+                  {metaSaving ? 'Saving…' : 'Save details'}
+                </button>
+              )}
+            </div>
 
             {/* Sections */}
             <div>

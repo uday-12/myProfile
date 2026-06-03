@@ -46,7 +46,7 @@ function AddCompanyForm({ onCreated, onCancel }) {
       </div>
       <div>
         <label className="block text-xs text-zinc-500 mb-1">Description *</label>
-        <textarea className={`${inputCls} resize-none`} rows={2} placeholder="What did you do here?" value={form.description} onChange={(e) => set('description', e.target.value)} />
+        <textarea className={`${inputCls} resize-y`} rows={2} placeholder="What did you do here?" value={form.description} onChange={(e) => set('description', e.target.value)} />
       </div>
       <div className="flex gap-2 pt-1">
         <button onClick={handleCreate} disabled={saving} className="inline-flex items-center gap-1.5 px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg transition-colors">
@@ -92,16 +92,16 @@ export default function ContentManager() {
   }
 
   return (
-    <div className="max-w-3xl">
-      <div className="flex items-center justify-between mb-8">
+    <div className="w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">Companies & Projects</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">Companies & Projects</h1>
           <p className="text-zinc-500 text-sm mt-1">Drag rows to reorder. Click a row to expand.</p>
         </div>
         {!addingCompany && (
           <button
             onClick={() => setAddingCompany(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors self-start sm:self-auto shrink-0"
           >
             <Plus className="w-4 h-4" />
             Add company

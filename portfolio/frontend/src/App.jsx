@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { ToastProvider } from './context/ToastContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 
 import Home from './pages/Home.jsx'
@@ -13,6 +14,7 @@ import ContentManager from './pages/admin/ContentManager.jsx'
 export default function App() {
   return (
     <BrowserRouter>
+      <ThemeProvider>
       <AuthProvider>
         <ToastProvider>
         <Routes>
@@ -42,6 +44,7 @@ export default function App() {
         </Routes>
         </ToastProvider>
       </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   )
 }

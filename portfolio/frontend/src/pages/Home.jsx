@@ -4,6 +4,7 @@ import ProfileHeader from '../components/ProfileHeader.jsx'
 import CompanySection from '../components/CompanySection.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import ErrorMessage from '../components/ErrorMessage.jsx'
+import ThemeToggle from '../components/ThemeToggle.jsx'
 
 export default function Home() {
   const [profile, setProfile] = useState(null)
@@ -25,12 +26,12 @@ export default function Home() {
   if (error) return <ErrorMessage message={error} />
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-[var(--c-bg)]">
       {profile && <ProfileHeader profile={profile} />}
 
       {companies.length === 0 ? (
         <div className="flex items-center justify-center py-24">
-          <p className="text-zinc-600 text-sm">No projects to display yet.</p>
+          <p className="text-[var(--c-text-3)] text-sm">No projects to display yet.</p>
         </div>
       ) : (
         <main>
@@ -39,7 +40,7 @@ export default function Home() {
               <CompanySection company={company} />
               {i < companies.length - 1 && (
                 <div className="max-w-6xl mx-auto px-4">
-                  <div className="h-px bg-zinc-800/80" />
+                  <div className="h-px bg-[var(--c-border)]" />
                 </div>
               )}
             </div>
@@ -47,9 +48,11 @@ export default function Home() {
         </main>
       )}
 
-      <footer className="text-center py-8 text-zinc-700 text-xs border-t border-zinc-900">
+      <footer className="text-center py-8 text-[var(--c-text-3)] text-xs border-t border-[var(--c-border)]">
         {profile?.name} · {new Date().getFullYear()}
       </footer>
+
+      <ThemeToggle />
     </div>
   )
 }

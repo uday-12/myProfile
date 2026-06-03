@@ -1,25 +1,29 @@
-export default function SectionBlock({ section, index }) {
-  const isEven = index % 2 === 0
+import { parseInline } from '../lib/markdown.jsx'
+
+export default function SectionBlock({ section }) {
+  const lines = section.description.split('\n')
 
   return (
-    <div className={`flex flex-col ${section.imageUrl ? 'md:flex-row' : ''} gap-8 items-start ${!isEven && section.imageUrl ? 'md:flex-row-reverse' : ''}`}>
+    <div className="flex flex-col gap-4">
+      <h3 className="text-lg font-semibold" style={{ color: 'var(--c-text)' }}>
+        {section.title}
+      </h3>
       {section.imageUrl && (
-        <div className="w-full md:w-1/2 shrink-0">
-          <img
-            src={section.imageUrl}
-            alt={section.title}
-            className="w-full rounded-xl object-cover max-h-72 border border-zinc-800"
-          />
-        </div>
+        <img
+          src={section.imageUrl}
+          alt={section.title}
+          className="w-full rounded-xl object-cover max-h-[480px]"
+          style={{ border: '1px solid var(--c-border)' }}
+        />
       )}
-      <div className={`flex flex-col justify-center ${section.imageUrl ? 'md:w-1/2' : 'w-full'}`}>
-        <h3 className="text-lg font-semibold text-zinc-100 mb-3">
-          {section.title}
-        </h3>
-        <p className="text-zinc-400 leading-relaxed text-sm md:text-base whitespace-pre-line">
-          {section.description}
-        </p>
-      </div>
+      <p className="w-full leading-relaxed text-sm md:text-base" style={{ color: 'var(--c-text-2)' }}>
+        {lines.map((line, i) => (
+          <span key={i}>
+            {parseInline(line)}
+            {i < lines.length - 1 && <br />}
+          </span>
+        ))}
+      </p>
     </div>
   )
 }

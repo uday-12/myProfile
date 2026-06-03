@@ -40,11 +40,11 @@ export async function createCompany(req, res) {
   if (!errors.isEmpty()) return res.status(422).json({ error: errors.array()[0].msg })
 
   try {
-    const { name, description, logoUrl } = req.body
+    const { name, description, logoUrl, startDate, endDate } = req.body
     const agg = await prisma.company.aggregate({ _max: { order: true } })
     const order = (agg._max.order ?? 0) + 1
     const company = await prisma.company.create({
-      data: { name, description, logoUrl, order },
+      data: { name, description, logoUrl, order, startDate: startDate || null, endDate: endDate || null },
     })
     return res.status(201).json(company)
   } catch {
@@ -60,6 +60,8 @@ export async function updateCompany(req, res) {
     const { name, description } = req.body
     const data = { name, description }
     if ('logoUrl' in req.body) data.logoUrl = req.body.logoUrl
+    if ('startDate' in req.body) data.startDate = req.body.startDate || null
+    if ('endDate' in req.body) data.endDate = req.body.endDate || null
 
     const company = await prisma.company.update({
       where: { id: req.params.id },

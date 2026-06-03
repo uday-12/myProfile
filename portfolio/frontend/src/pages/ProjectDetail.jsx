@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../lib/api.js'
+import { formatPeriod } from '../lib/formatDate.js'
 import VideoPlayer from '../components/VideoPlayer.jsx'
+import ProjectMeta from '../components/ProjectMeta.jsx'
 import SectionBlock from '../components/SectionBlock.jsx'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import ErrorMessage from '../components/ErrorMessage.jsx'
+import ThemeToggle from '../components/ThemeToggle.jsx'
 
 export default function ProjectDetail() {
   const { id } = useParams()
@@ -26,12 +29,12 @@ export default function ProjectDetail() {
   if (error) return <ErrorMessage message={error} />
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-[var(--c-bg)]">
       <div className="max-w-4xl mx-auto px-4 py-10">
         {/* Back button */}
         <button
           onClick={() => navigate('/')}
-          className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-indigo-400 transition-colors duration-150 mb-8 group"
+          className="inline-flex items-center gap-2 text-sm text-[var(--c-text-3)] hover:text-[var(--c-accent-2)] transition-colors duration-150 mb-8 group"
         >
           <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-150"
             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -41,17 +44,31 @@ export default function ProjectDetail() {
         </button>
 
         {/* Title + description */}
-        <h1 className="text-3xl md:text-4xl font-bold text-zinc-50 mb-3 tracking-tight">
-          {project.title}
-        </h1>
-        <p className="text-zinc-400 leading-relaxed mb-10 text-base md:text-lg max-w-3xl">
+        <div className="flex items-baseline justify-between gap-3 mb-3">
+          <h1 className="text-3xl md:text-4xl font-bold text-[var(--c-text)] tracking-tight">
+            {project.title}
+          </h1>
+          {formatPeriod(project.startDate, project.endDate) && (
+            <span className="text-sm shrink-0" style={{ color: 'var(--c-text-3)' }}>
+              {formatPeriod(project.startDate, project.endDate)}
+            </span>
+          )}
+        </div>
+        <p className="text-[var(--c-text-2)] leading-relaxed mb-10 text-base md:text-lg">
           {project.description}
         </p>
 
         {/* Video */}
         {project.videoUrl && (
-          <div className="mb-14">
+          <div className="mb-8">
             <VideoPlayer url={project.videoUrl} />
+          </div>
+        )}
+
+        {/* Meta (skills, role, etc.) */}
+        {project.metadata?.length > 0 && (
+          <div className="mb-14">
+            <ProjectMeta metadata={project.metadata} />
           </div>
         )}
 
@@ -65,14 +82,16 @@ export default function ProjectDetail() {
         )}
       </div>
 
-      <footer className="text-center py-8 text-zinc-700 text-xs border-t border-zinc-900 mt-16">
+      <footer className="text-center py-8 text-[var(--c-text-3)] text-xs border-t border-[var(--c-border)] mt-16">
         <button
           onClick={() => navigate('/')}
-          className="text-zinc-600 hover:text-indigo-400 transition-colors duration-150"
+          className="text-[var(--c-text-3)] hover:text-[var(--c-accent-2)] transition-colors duration-150"
         >
           ← Back to portfolio
         </button>
       </footer>
+
+      <ThemeToggle />
     </div>
   )
 }

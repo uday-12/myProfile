@@ -24,7 +24,7 @@ const orderedIdsValidation = [
 const projectValidation = [
   body('title').trim().notEmpty().withMessage('title is required'),
   body('description').trim().notEmpty().withMessage('description is required'),
-  body('videoUrl').optional({ nullable: true }).isURL().withMessage('videoUrl must be a valid URL'),
+  body('videoUrl').optional({ values: 'falsy' }).isURL().withMessage('videoUrl must be a valid URL'),
 ]
 
 const sectionValidation = [

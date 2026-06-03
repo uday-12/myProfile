@@ -1,3 +1,5 @@
+import { parseInline } from '../lib/markdown.jsx'
+
 const PLATFORM_ICONS = {
   github: (
     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -17,6 +19,7 @@ const PLATFORM_ICONS = {
 }
 
 function SocialLink({ platform, url }) {
+  const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`
   const icon = PLATFORM_ICONS[platform.toLowerCase()] ?? (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -26,10 +29,23 @@ function SocialLink({ platform, url }) {
 
   return (
     <a
-      href={url}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-zinc-400 bg-zinc-800 border border-zinc-700 hover:text-indigo-400 hover:border-indigo-500/50 transition-colors duration-200 capitalize"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm capitalize transition-colors duration-200"
+      style={{
+        color: 'var(--c-text-2)',
+        background: 'var(--c-surface-2)',
+        border: '1px solid var(--c-border-2)',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = 'var(--c-accent-2)'
+        e.currentTarget.style.borderColor = 'var(--c-accent)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = 'var(--c-text-2)'
+        e.currentTarget.style.borderColor = 'var(--c-border-2)'
+      }}
     >
       {icon}
       {platform}
@@ -41,10 +57,10 @@ export default function ProfileHeader({ profile }) {
   const socialEntries = Object.entries(profile.socialLinks || {}).filter(([, v]) => v)
 
   return (
-    <header className="relative overflow-hidden bg-zinc-950 pt-20 pb-16 px-4">
+    <header className="relative overflow-hidden pt-20 pb-16 px-4" style={{ background: 'var(--c-bg)' }}>
       {/* subtle radial glow */}
       <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
-        <div className="w-[600px] h-[400px] rounded-full bg-indigo-600/10 blur-3xl" />
+        <div className="w-[600px] h-[400px] rounded-full blur-3xl" style={{ background: 'var(--c-accent-bg)' }} />
       </div>
 
       <div className="relative max-w-3xl mx-auto text-center">
@@ -52,26 +68,37 @@ export default function ProfileHeader({ profile }) {
           <img
             src={profile.avatarUrl}
             alt={profile.name}
-            className="w-28 h-28 rounded-full mx-auto mb-6 object-cover ring-4 ring-zinc-800 ring-offset-4 ring-offset-zinc-950"
+            className="w-28 h-28 rounded-full mx-auto mb-6 object-cover ring-4 ring-offset-4"
+            style={{ '--tw-ring-color': 'var(--c-border-2)', '--tw-ring-offset-color': 'var(--c-bg)' }}
           />
         ) : (
-          <div className="w-28 h-28 rounded-full mx-auto mb-6 bg-zinc-800 border-4 border-zinc-700 flex items-center justify-center ring-4 ring-zinc-800 ring-offset-4 ring-offset-zinc-950">
-            <span className="text-4xl font-bold text-zinc-500 select-none">
+          <div
+            className="w-28 h-28 rounded-full mx-auto mb-6 flex items-center justify-center ring-4 ring-offset-4"
+            style={{
+              background: 'var(--c-surface-2)',
+              border: '4px solid var(--c-border-2)',
+              '--tw-ring-color': 'var(--c-border-2)',
+              '--tw-ring-offset-color': 'var(--c-bg)',
+            }}
+          >
+            <span className="text-4xl font-bold select-none" style={{ color: 'var(--c-text-3)' }}>
               {profile.name?.charAt(0).toUpperCase()}
             </span>
           </div>
         )}
 
-        <h1 className="text-4xl md:text-5xl font-bold text-zinc-50 mb-2 tracking-tight">
+        <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight" style={{ color: 'var(--c-text)' }}>
           {profile.name}
         </h1>
 
-        <p className="text-lg md:text-xl text-indigo-400 font-medium mb-5">
+        <p className="text-lg md:text-xl font-medium mb-5" style={{ color: 'var(--c-accent-2)' }}>
           {profile.title}
         </p>
 
-        <p className="text-zinc-400 text-base md:text-lg leading-relaxed max-w-2xl mx-auto mb-8">
-          {profile.bio}
+        <p className="text-base md:text-lg leading-relaxed max-w-2xl mx-auto mb-8" style={{ color: 'var(--c-text-2)' }}>
+          {(profile.bio || '').split('\n').map((line, i, arr) => (
+            <span key={i}>{parseInline(line)}{i < arr.length - 1 && <br />}</span>
+          ))}
         </p>
 
         {socialEntries.length > 0 && (

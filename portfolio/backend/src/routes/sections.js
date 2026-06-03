@@ -8,7 +8,7 @@ const router = Router()
 const sectionValidation = [
   body('title').trim().notEmpty().withMessage('title is required'),
   body('description').trim().notEmpty().withMessage('description is required'),
-  body('imageUrl').optional({ nullable: true }).isURL().withMessage('imageUrl must be a valid URL'),
+  body('imageUrl').optional({ values: 'falsy' }).isURL().withMessage('imageUrl must be a valid URL'),
 ]
 
 router.put('/:id', requireAuth, sectionValidation, updateSection)
