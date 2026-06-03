@@ -127,6 +127,7 @@ export default function CompanyRow({ company: initial, onDelete }) {
       const toISO = (m) => m ? `${m}-01T00:00:00.000Z` : null
       await api.put(`/api/companies/${initial.id}`, {
         ...form,
+        logoUrl: form.logoUrl || null,
         startDate: toISO(form.startDate),
         endDate: toISO(form.endDate),
       })

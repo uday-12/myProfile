@@ -25,13 +25,16 @@ function AddSectionForm({ projectId, onCreated, onCancel }) {
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }))
 
   const handleCreate = async () => {
-    if (!form.title.trim() || !form.description.trim()) {
-      addToast('Title and description are required.', 'error')
+    if (!form.title.trim()) {
+      addToast('Title is required.', 'error')
       return
     }
     setSaving(true)
     try {
-      const res = await api.post(`/api/projects/${projectId}/sections`, form)
+      const res = await api.post(`/api/projects/${projectId}/sections`, {
+        ...form,
+        imageUrl: form.imageUrl || null,
+      })
       onCreated(res.data)
       addToast('Section added.')
     } catch {
@@ -45,7 +48,7 @@ function AddSectionForm({ projectId, onCreated, onCancel }) {
     <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/5 p-3 space-y-2.5">
       <p className="text-xs font-medium text-indigo-400">New section</p>
       <input className={inputCls} placeholder="Title *" value={form.title} onChange={(e) => set('title', e.target.value)} />
-      <textarea className={`${inputCls} resize-y`} rows={2} placeholder="Description *" value={form.description} onChange={(e) => set('description', e.target.value)} />
+      <textarea className={`${inputCls} resize-y`} rows={2} placeholder="Description (optional)" value={form.description} onChange={(e) => set('description', e.target.value)} />
       <FileUpload value={form.imageUrl} onChange={(v) => set('imageUrl', v)} label="Upload image (optional)" />
       <div className="flex gap-2 pt-1">
         <button onClick={handleCreate} disabled={saving} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-lg transition-colors">
@@ -129,6 +132,7 @@ export default function ProjectRow({ project: initial, companyId, onDelete }) {
       const toISO = (m) => m ? `${m}-01T00:00:00.000Z` : null
       await api.put(`/api/projects/${initial.id}`, {
         ...form,
+        videoUrl: form.videoUrl || null,
         startDate: toISO(form.startDate),
         endDate: toISO(form.endDate),
       })

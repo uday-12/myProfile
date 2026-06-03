@@ -14,9 +14,11 @@ export default function SectionBlock({ section }) {
           style={{ border: '1px solid var(--c-border)' }}
         />
       )}
-      <div className="w-full leading-relaxed text-sm md:text-base" style={{ color: 'var(--c-text-2)' }}>
-        {renderLines(section.description)}
-      </div>
+      {section.description && (
+        <div className="w-full leading-relaxed text-sm md:text-base" style={{ color: 'var(--c-text-2)' }}>
+          {renderLines(section.description)}
+        </div>
+      )}
     </div>
   )
 }

@@ -55,13 +55,16 @@ export default function SectionRow({ section: initial, onDelete }) {
   }
 
   const handleSave = async () => {
-    if (!form.title.trim() || !form.description.trim()) {
-      addToast('Title and description are required.', 'error')
+    if (!form.title.trim()) {
+      addToast('Title is required.', 'error')
       return
     }
     setSaving(true)
     try {
-      await api.put(`/api/sections/${initial.id}`, form)
+      await api.put(`/api/sections/${initial.id}`, {
+        ...form,
+        imageUrl: form.imageUrl || null,
+      })
       addToast('Section saved.')
       setOpen(false)
     } catch {
@@ -110,7 +113,7 @@ export default function SectionRow({ section: initial, onDelete }) {
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-zinc-500">Description *</label>
+                <label className="text-xs font-medium text-zinc-500">Description</label>
                 <div className="flex items-center gap-1">
                   {/* Formatting buttons */}
                   <button type="button" onClick={() => wrapSelection('**')}
@@ -137,7 +140,7 @@ export default function SectionRow({ section: initial, onDelete }) {
                   </div>
                 </div>
               </div>
-              <textarea ref={textareaRef} className={`${inputCls} resize-y`} rows={3} value={form.description} onChange={(e) => setField('description', e.target.value)} placeholder="Section description…" />
+              <textarea ref={textareaRef} className={`${inputCls} resize-y`} rows={3} value={form.description} onChange={(e) => setField('description', e.target.value)} placeholder="Section description (optional)…" />
             </div>
             <div>
               <label className="block text-xs font-medium text-zinc-500 mb-1.5">Image</label>
