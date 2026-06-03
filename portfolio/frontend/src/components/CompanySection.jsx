@@ -1,5 +1,6 @@
 import ProjectCard from './ProjectCard.jsx'
 import { formatPeriod } from '../lib/formatDate.js'
+import { renderLines } from '../lib/markdown.jsx'
 
 export default function CompanySection({ company }) {
   const period = formatPeriod(company.startDate, company.endDate)
@@ -26,9 +27,9 @@ export default function CompanySection({ company }) {
               )}
             </div>
             {company.description && (
-              <p className="mt-1 text-sm md:text-base leading-relaxed" style={{ color: 'var(--c-text-2)' }}>
-                {company.description}
-              </p>
+              <div className="mt-1 text-sm md:text-base leading-relaxed" style={{ color: 'var(--c-text-2)' }}>
+                {renderLines(company.description)}
+              </div>
             )}
           </div>
         </div>

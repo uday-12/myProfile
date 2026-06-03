@@ -1,4 +1,4 @@
-import { parseInline } from '../lib/markdown.jsx'
+import { renderLines } from '../lib/markdown.jsx'
 
 const PLATFORM_ICONS = {
   github: (
@@ -95,11 +95,9 @@ export default function ProfileHeader({ profile }) {
           {profile.title}
         </p>
 
-        <p className="text-base md:text-lg leading-relaxed max-w-2xl mx-auto mb-8" style={{ color: 'var(--c-text-2)' }}>
-          {(profile.bio || '').split('\n').map((line, i, arr) => (
-            <span key={i}>{parseInline(line)}{i < arr.length - 1 && <br />}</span>
-          ))}
-        </p>
+        <div className="text-base md:text-lg leading-relaxed max-w-2xl mx-auto mb-8" style={{ color: 'var(--c-text-2)' }}>
+          {renderLines(profile.bio || '')}
+        </div>
 
         {socialEntries.length > 0 && (
           <div className="flex flex-wrap gap-2 justify-center">

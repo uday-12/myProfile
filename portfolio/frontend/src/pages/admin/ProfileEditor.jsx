@@ -72,6 +72,20 @@ export default function ProfileEditor() {
     })
   }
 
+  const insertBulletBio = () => {
+    const el = bioRef.current
+    if (!el) return
+    const pos = el.selectionStart
+    const val = form.bio
+    const lineStart = val.lastIndexOf('\n', pos - 1) + 1
+    const next = val.slice(0, lineStart) + '- ' + val.slice(lineStart)
+    setField('bio', next)
+    requestAnimationFrame(() => {
+      el.focus()
+      el.setSelectionRange(pos + 2, pos + 2)
+    })
+  }
+
   const [pageLoading, setPageLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [avatarUploading, setAvatarUploading] = useState(false)
@@ -274,15 +288,19 @@ export default function ProfileEditor() {
                 <button type="button" onClick={() => wrapBio('*')}
                   className="px-1.5 py-0.5 text-xs italic text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
                   title="Italic — *text*">I</button>
+                <button type="button" onClick={insertBulletBio}
+                  className="px-1.5 py-0.5 text-xs text-zinc-400 hover:text-zinc-100 bg-zinc-800 hover:bg-zinc-700 rounded transition-colors"
+                  title="Bullet point — adds '- ' at line start">•</button>
                 <div className="relative group ml-1">
                   <button type="button" className="w-4 h-4 rounded-full bg-zinc-700 text-zinc-400 text-[10px] flex items-center justify-center hover:bg-zinc-600 transition-colors">
                     i
                   </button>
-                  <div className="absolute right-0 top-5 z-20 hidden group-hover:block w-52 bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-xs text-zinc-400 shadow-xl">
+                  <div className="absolute right-0 top-5 z-20 hidden group-hover:block w-56 bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-xs text-zinc-400 shadow-xl">
                     <p className="font-semibold text-zinc-300 mb-1.5">Formatting syntax</p>
                     <p><code className="text-indigo-400">**text**</code> → <strong className="text-zinc-200">bold</strong></p>
                     <p className="mt-1"><code className="text-indigo-400">*text*</code> → <em>italic</em></p>
-                    <p className="mt-2 text-zinc-600">Select text then click B or I, or type manually.</p>
+                    <p className="mt-1"><code className="text-indigo-400">- text</code> → <span className="text-zinc-200">• bullet point</span></p>
+                    <p className="mt-2 text-zinc-600">Place cursor on a line and click • to add a bullet, or type "- " manually.</p>
                   </div>
                 </div>
               </div>

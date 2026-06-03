@@ -1,8 +1,6 @@
-import { parseInline } from '../lib/markdown.jsx'
+import { renderLines } from '../lib/markdown.jsx'
 
 export default function SectionBlock({ section }) {
-  const lines = section.description.split('\n')
-
   return (
     <div className="flex flex-col gap-4">
       <h3 className="text-lg font-semibold" style={{ color: 'var(--c-text)' }}>
@@ -16,14 +14,9 @@ export default function SectionBlock({ section }) {
           style={{ border: '1px solid var(--c-border)' }}
         />
       )}
-      <p className="w-full leading-relaxed text-sm md:text-base" style={{ color: 'var(--c-text-2)' }}>
-        {lines.map((line, i) => (
-          <span key={i}>
-            {parseInline(line)}
-            {i < lines.length - 1 && <br />}
-          </span>
-        ))}
-      </p>
+      <div className="w-full leading-relaxed text-sm md:text-base" style={{ color: 'var(--c-text-2)' }}>
+        {renderLines(section.description)}
+      </div>
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../lib/api.js'
 import { formatPeriod } from '../lib/formatDate.js'
+import { renderLines } from '../lib/markdown.jsx'
 import VideoPlayer from '../components/VideoPlayer.jsx'
 import ProjectMeta from '../components/ProjectMeta.jsx'
 import SectionBlock from '../components/SectionBlock.jsx'
@@ -54,9 +55,9 @@ export default function ProjectDetail() {
             </span>
           )}
         </div>
-        <p className="text-[var(--c-text-2)] leading-relaxed mb-10 text-base md:text-lg">
-          {project.description}
-        </p>
+        <div className="text-[var(--c-text-2)] leading-relaxed mb-10 text-base md:text-lg">
+          {renderLines(project.description)}
+        </div>
 
         {/* Video */}
         {project.videoUrl && (
