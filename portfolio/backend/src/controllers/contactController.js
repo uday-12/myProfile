@@ -51,10 +51,11 @@ export async function sendContactMessage(req, res) {
       return res.status(500).json({ error: 'No recipient email configured.' })
     }
 
+    const smtpPort = Number(process.env.SMTP_PORT) || 465
     const transporter = nodemailer.createTransport({
       host:   process.env.SMTP_HOST || 'smtp.gmail.com',
-      port:   Number(process.env.SMTP_PORT) || 587,
-      secure: false,
+      port:   smtpPort,
+      secure: smtpPort === 465, // true for 465 (TLS), false for 587 (STARTTLS)
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -81,7 +82,7 @@ export async function sendContactMessage(req, res) {
 
     return res.json({ success: true })
   } catch (err) {
-    console.error('Email send error:', err.message)
+    console.error('Email send error:', err.code, err.message)
     return res.status(500).json({ error: 'Failed to send message. Please try again later.' })
   }
 }
