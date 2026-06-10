@@ -77,7 +77,7 @@ export default function ContactSection({ info }) {
       <div className="max-w-5xl mx-auto">
         {/* Heading */}
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12" style={{ color: 'var(--c-text)' }}>
-          Contact Us
+          Contact Me
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">

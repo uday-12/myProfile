@@ -51,7 +51,7 @@ export default function ContactManager() {
     <div className="w-full max-w-xl">
       <div className="mb-8">
         <h1 className="text-xl sm:text-2xl font-bold text-zinc-100 tracking-tight">Contact Info</h1>
-        <p className="text-zinc-500 text-sm mt-1">Shown in the public Contact Us section.</p>
+        <p className="text-zinc-500 text-sm mt-1">Shown in the public Contact Me section.</p>
       </div>
 
       <div className="space-y-5 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
