@@ -52,18 +52,35 @@ export async function sendContactMessage(req, res) {
     }
 
     const smtpPort = Number(process.env.SMTP_PORT) || 465
+    const smtpUser = process.env.SMTP_USER
+    const smtpPass = process.env.SMTP_PASS
+
+    console.log('[contact/send] SMTP config →', {
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: smtpPort,
+      secure: smtpPort === 465,
+      user: smtpUser ? `${smtpUser.slice(0, 4)}…` : 'MISSING',
+      pass: smtpPass ? `set (${smtpPass.length} chars)` : 'MISSING',
+      recipient,
+    })
+
+    if (!smtpUser || !smtpPass) {
+      console.error('[contact/send] SMTP credentials missing in env')
+      return res.status(500).json({ error: 'SMTP credentials not configured on server.' })
+    }
+
     const transporter = nodemailer.createTransport({
       host:   process.env.SMTP_HOST || 'smtp.gmail.com',
       port:   smtpPort,
-      secure: smtpPort === 465, // true for 465 (TLS), false for 587 (STARTTLS)
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
+      secure: smtpPort === 465,
+      auth:   { user: smtpUser, pass: smtpPass },
     })
 
+    // verify connection before attempting send
+    await transporter.verify()
+
     await transporter.sendMail({
-      from:    `"Portfolio Contact" <${process.env.SMTP_USER}>`,
+      from:    `"Portfolio Contact" <${smtpUser}>`,
       to:      recipient,
       replyTo: email,
       subject: `New message from ${name}`,
@@ -80,9 +97,23 @@ export async function sendContactMessage(req, res) {
       `,
     })
 
+    console.log('[contact/send] Email delivered to', recipient)
     return res.json({ success: true })
   } catch (err) {
-    console.error('Email send error:', err.code, err.message)
-    return res.status(500).json({ error: 'Failed to send message. Please try again later.' })
+    const detail = {
+      code:    err.code,
+      command: err.command,
+      message: err.message,
+      response: err.response,
+    }
+    console.error('[contact/send] FAILED', JSON.stringify(detail))
+    const friendly =
+      err.code === 'EAUTH'        ? 'SMTP authentication failed — check SMTP_USER / SMTP_PASS.' :
+      err.code === 'ECONNECTION'  ? 'Could not connect to SMTP server — check SMTP_HOST / SMTP_PORT.' :
+      err.code === 'ECONNREFUSED' ? 'SMTP connection refused — port may be blocked on this host.' :
+      err.code === 'ETIMEDOUT'    ? 'SMTP connection timed out — port 587 is likely blocked; try port 465.' :
+      err.code === 'ESOCKET'      ? 'TLS/socket error — if using port 465 ensure secure=true.' :
+                                    `Unexpected error (${err.code ?? 'unknown'}): ${err.message}`
+    return res.status(500).json({ error: friendly })
   }
 }
