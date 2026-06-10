@@ -74,6 +74,7 @@ export async function sendContactMessage(req, res) {
       port:   smtpPort,
       secure: smtpPort === 465,
       auth:   { user: smtpUser, pass: smtpPass },
+      tls:    { rejectUnauthorized: false },
     })
 
     // verify connection before attempting send
