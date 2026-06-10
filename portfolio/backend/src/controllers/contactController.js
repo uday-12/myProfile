@@ -1,8 +1,7 @@
 import { validationResult } from 'express-validator'
-import nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 import prisma from '../lib/prisma.js'
 
-// singleton upsert helper
 async function upsertContact(data) {
   const existing = await prisma.contactInfo.findFirst()
   if (existing) {
@@ -51,41 +50,20 @@ export async function sendContactMessage(req, res) {
       return res.status(500).json({ error: 'No recipient email configured.' })
     }
 
-    const smtpPort = Number(process.env.SMTP_PORT) || 465
-    const smtpUser = process.env.SMTP_USER
-    const smtpPass = process.env.SMTP_PASS
-
-    console.log('[contact/send] SMTP config →', {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: smtpPort,
-      secure: smtpPort === 465,
-      user: smtpUser ? `${smtpUser.slice(0, 4)}…` : 'MISSING',
-      pass: smtpPass ? `set (${smtpPass.length} chars)` : 'MISSING',
-      recipient,
-    })
-
-    if (!smtpUser || !smtpPass) {
-      console.error('[contact/send] SMTP credentials missing in env')
-      return res.status(500).json({ error: 'SMTP credentials not configured on server.' })
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      console.error('[contact/send] RESEND_API_KEY missing in env')
+      return res.status(500).json({ error: 'Email service not configured on server.' })
     }
 
-    const transporter = nodemailer.createTransport({
-      host:   process.env.SMTP_HOST || 'smtp.gmail.com',
-      port:   smtpPort,
-      secure: smtpPort === 465,
-      auth:   { user: smtpUser, pass: smtpPass },
-      tls:    { rejectUnauthorized: false },
-    })
+    const resend = new Resend(apiKey)
 
-    // verify connection before attempting send
-    await transporter.verify()
-
-    await transporter.sendMail({
-      from:    `"Portfolio Contact" <${smtpUser}>`,
-      to:      recipient,
-      replyTo: email,
-      subject: `New message from ${name}`,
-      text:    `Name: ${name}\nEmail: ${email}\n\n${message}`,
+    const { error: sendError } = await resend.emails.send({
+      from:     'Portfolio Contact <onboarding@resend.dev>',
+      to:       [recipient],
+      reply_to: email,
+      subject:  `New message from ${name}`,
+      text:     `Name: ${name}\nEmail: ${email}\n\n${message}`,
       html: `
         <div style="font-family:sans-serif;max-width:600px">
           <h2 style="color:#6366f1">New contact form message</h2>
@@ -98,23 +76,15 @@ export async function sendContactMessage(req, res) {
       `,
     })
 
+    if (sendError) {
+      console.error('[contact/send] Resend error:', sendError)
+      return res.status(500).json({ error: `Email delivery failed: ${sendError.message}` })
+    }
+
     console.log('[contact/send] Email delivered to', recipient)
     return res.json({ success: true })
   } catch (err) {
-    const detail = {
-      code:    err.code,
-      command: err.command,
-      message: err.message,
-      response: err.response,
-    }
-    console.error('[contact/send] FAILED', JSON.stringify(detail))
-    const friendly =
-      err.code === 'EAUTH'        ? 'SMTP authentication failed — check SMTP_USER / SMTP_PASS.' :
-      err.code === 'ECONNECTION'  ? 'Could not connect to SMTP server — check SMTP_HOST / SMTP_PORT.' :
-      err.code === 'ECONNREFUSED' ? 'SMTP connection refused — port may be blocked on this host.' :
-      err.code === 'ETIMEDOUT'    ? 'SMTP connection timed out — port 587 is likely blocked; try port 465.' :
-      err.code === 'ESOCKET'      ? 'TLS/socket error — if using port 465 ensure secure=true.' :
-                                    `Unexpected error (${err.code ?? 'unknown'}): ${err.message}`
-    return res.status(500).json({ error: friendly })
+    console.error('[contact/send] Unexpected error:', err.message)
+    return res.status(500).json({ error: `Unexpected error: ${err.message}` })
   }
 }
