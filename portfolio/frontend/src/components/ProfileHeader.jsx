@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { renderLines } from '../lib/markdown.jsx'
+import ImageLightbox from './ImageLightbox.jsx'
 
 const PLATFORM_ICONS = {
   github: (
@@ -55,6 +57,7 @@ function SocialLink({ platform, url }) {
 
 export default function ProfileHeader({ profile }) {
   const socialEntries = Object.entries(profile.socialLinks || {}).filter(([, v]) => v)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   return (
     <header className="relative overflow-hidden pt-20 pb-16 px-4" style={{ background: 'var(--c-bg)' }}>
@@ -65,12 +68,25 @@ export default function ProfileHeader({ profile }) {
 
       <div className="relative max-w-3xl mx-auto text-center">
         {profile.avatarUrl ? (
-          <img
-            src={profile.avatarUrl}
-            alt={profile.name}
-            className="w-28 h-28 rounded-full mx-auto mb-6 object-cover ring-4 ring-offset-4"
-            style={{ '--tw-ring-color': 'var(--c-border-2)', '--tw-ring-offset-color': 'var(--c-bg)' }}
-          />
+          <>
+            <div className="relative inline-block mx-auto mb-6 group cursor-zoom-in" onClick={() => setLightboxOpen(true)}>
+              <img
+                src={profile.avatarUrl}
+                alt={profile.name}
+                className="w-28 h-28 rounded-full object-cover ring-4 ring-offset-4 transition-opacity group-hover:opacity-90"
+                style={{ '--tw-ring-color': 'var(--c-border-2)', '--tw-ring-offset-color': 'var(--c-bg)' }}
+              />
+              <div className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ background: 'rgba(0,0,0,0.35)' }}>
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803zM10.5 7.5v6m3-3h-6" />
+                </svg>
+              </div>
+            </div>
+            {lightboxOpen && (
+              <ImageLightbox src={profile.avatarUrl} alt={profile.name} onClose={() => setLightboxOpen(false)} />
+            )}
+          </>
         ) : (
           <div
             className="w-28 h-28 rounded-full mx-auto mb-6 flex items-center justify-center ring-4 ring-offset-4"

@@ -182,6 +182,7 @@ export default function ImageLightbox({ src, alt, onClose }) {
       {/* Close */}
       <button
         onClick={onClose}
+        onMouseDown={(e) => e.stopPropagation()}
         className="fixed top-4 right-4 p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-zinc-700/80 transition-colors"
         style={{ background: 'rgba(24,24,27,0.8)' }}
         title="Close (Esc)"
